@@ -40,10 +40,7 @@ jobs:
   
   build:
     needs: test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: ['ubuntu-latest', 'ubuntu-20.04']
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Install Docker Compose
@@ -53,6 +50,12 @@ jobs:
     - name: Build
       run: docker-compose build
 
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: api_go
+        path: main
+        
   docker:
       needs: build
       uses: ./.github/workflows/Docker.yml
