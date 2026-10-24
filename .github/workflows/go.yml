@@ -16,10 +16,24 @@ jobs:
       USER: root
       PASSWORD: root
       DBNAME: root
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: root
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U root"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     strategy:
       matrix:
-        go_version: ['1.18', '1.17', '>=1.18']
-        os: ['ubuntu-latest', 'ubuntu-20.04']
+        go_version: ['1.27.3']
+        os: ['ubuntu-latest']
     steps:
     - uses: actions/checkout@v3
 
@@ -28,12 +42,6 @@ jobs:
       with:
         go-version: ${{ matrix.go_version }}
       
-    - name: Build-DB
-      run: docker compose build
-      
-    - name: Create-DB
-      run: docker compose up -d
-
     - name: Test
       run: go test -v main_test.go 
       
@@ -43,21 +51,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Install Docker Compose
-      run: |
-        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-    - name: Build
-      run: docker-compose build
+    - name: Build image
+      run: docker build -t go_ci .
 
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.6.0
-      with:
-        name: api_go
-        path: main
-        
   docker:
       needs: build
+      if: github.event_name != 'pull_request'
       uses: ./.github/workflows/Docker.yml
       secrets: inherit
 
