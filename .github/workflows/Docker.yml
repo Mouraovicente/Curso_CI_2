@@ -21,13 +21,16 @@ jobs:
         username: vicentemourao
         password: ${{secrets.DOCKER_HUB_PASSWORD}} 
         
+    - name: Image tag
+      run: echo "TAG=${GITHUB_REF_NAME//\//-}" >> "$GITHUB_ENV"
+
     - name: Build and push Docker images
       uses: docker/build-push-action@v6.13.0 
       with:
         context: .
         file: ./Dockerfile
         push: true
-        tags: vicentemourao/go_ci:${{github.ref_name}}
+        tags: vicentemourao/go_ci:${{ env.TAG }}
         
     
 
